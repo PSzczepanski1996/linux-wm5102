@@ -1,0 +1,87 @@
+From f9112e46b682e21fa26488ce4d5794edaf850837 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 25 Dec 2020 12:49:33 +0100
+Subject: [PATCH 04/14] mfd: arizona: Allow building arizona MFD-core as module
+
+There is no reason why the arizona core,irq and codec model specific
+regmap bits cannot be build as a module. All they do is export symbols
+which are used by the arizona-spi and/or arizona-i2c modules, which
+themselves can be built as module.
+
+Change the Kconfig and Makefile arizona bits so that the arizona MFD-core
+can be built as a module.
+
+This is especially useful on x86 platforms with a WM5102 codec, this
+allows the arizona MFD driver necessary for the WM5102 codec to be
+enabled in generic distro-kernels without growing the base kernel-image
+size.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/mfd/Kconfig        |  2 +-
+ drivers/mfd/Makefile       | 14 +++++++-------
+ drivers/mfd/arizona-core.c |  2 ++
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index cc0b73280c68..8fe9e10eaf51 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1831,7 +1831,7 @@ config MFD_ARIZONA
+ 	select REGMAP
+ 	select REGMAP_IRQ
+ 	select MFD_CORE
+-	bool
++	tristate
+ 
+ config MFD_ARIZONA_I2C
+ 	tristate "Cirrus Logic/Wolfson Microelectronics Arizona platform with I2C"
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 14fdb188af02..3f208af1664f 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -41,24 +41,24 @@ obj-$(CONFIG_MFD_TQMX86)	+= tqmx86.o
+ 
+ obj-$(CONFIG_MFD_LOCHNAGAR)	+= lochnagar-i2c.o
+ 
+-obj-$(CONFIG_MFD_ARIZONA)	+= arizona-core.o
+-obj-$(CONFIG_MFD_ARIZONA)	+= arizona-irq.o
++arizona-objs			:= arizona-core.o arizona-irq.o
++obj-$(CONFIG_MFD_ARIZONA)	+= arizona.o
+ obj-$(CONFIG_MFD_ARIZONA_I2C)	+= arizona-i2c.o
+ obj-$(CONFIG_MFD_ARIZONA_SPI)	+= arizona-spi.o
+ ifeq ($(CONFIG_MFD_WM5102),y)
+-obj-$(CONFIG_MFD_ARIZONA)	+= wm5102-tables.o
++arizona-objs			+= wm5102-tables.o
+ endif
+ ifeq ($(CONFIG_MFD_WM5110),y)
+-obj-$(CONFIG_MFD_ARIZONA)	+= wm5110-tables.o
++arizona-objs			+= wm5110-tables.o
+ endif
+ ifeq ($(CONFIG_MFD_WM8997),y)
+-obj-$(CONFIG_MFD_ARIZONA)	+= wm8997-tables.o
++arizona-objs			+= wm8997-tables.o
+ endif
+ ifeq ($(CONFIG_MFD_WM8998),y)
+-obj-$(CONFIG_MFD_ARIZONA)	+= wm8998-tables.o
++arizona-objs			+= wm8998-tables.o
+ endif
+ ifeq ($(CONFIG_MFD_CS47L24),y)
+-obj-$(CONFIG_MFD_ARIZONA)	+= cs47l24-tables.o
++arizona-objs			+= cs47l24-tables.o
+ endif
+ obj-$(CONFIG_MFD_WCD934X)	+= wcd934x.o
+ obj-$(CONFIG_MFD_WM8400)	+= wm8400-core.o
+diff --git a/drivers/mfd/arizona-core.c b/drivers/mfd/arizona-core.c
+index 000cb82023e3..a9ba1c865abf 100644
+--- a/drivers/mfd/arizona-core.c
++++ b/drivers/mfd/arizona-core.c
+@@ -1478,3 +1478,5 @@ int arizona_dev_exit(struct arizona *arizona)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(arizona_dev_exit);
++
++MODULE_LICENSE("GPL v2");
+-- 
+2.28.0
+

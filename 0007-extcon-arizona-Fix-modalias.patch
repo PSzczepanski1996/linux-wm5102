@@ -1,0 +1,29 @@
+From 399f229249269addcb5aba4c54d920d7c66955ed Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 22 Dec 2020 18:05:51 +0100
+Subject: [PATCH 07/14] extcon: arizona: Fix modalias
+
+Fix the modalias so that the driver will be loaded automatically. The
+module's name is "extcon-arizona", following other extcon module-names.
+
+But the driver's and platform-device's name is "arizona-extcon" and the
+modalias must match that.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/extcon/extcon-arizona.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/extcon/extcon-arizona.c b/drivers/extcon/extcon-arizona.c
+index 76aacbac5869..95acfe7620fd 100644
+--- a/drivers/extcon/extcon-arizona.c
++++ b/drivers/extcon/extcon-arizona.c
+@@ -1816,4 +1816,4 @@ module_platform_driver(arizona_extcon_driver);
+ MODULE_DESCRIPTION("Arizona Extcon driver");
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_LICENSE("GPL");
+-MODULE_ALIAS("platform:extcon-arizona");
++MODULE_ALIAS("platform:arizona-extcon");
+-- 
+2.28.0
+

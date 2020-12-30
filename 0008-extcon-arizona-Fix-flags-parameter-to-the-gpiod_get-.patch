@@ -1,0 +1,32 @@
+From 72d8e5732bc962b46dfbdc767ae6f7c5804e95c3 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 22 Dec 2020 18:08:43 +0100
+Subject: [PATCH 08/14] extcon: arizona: Fix flags parameter to the
+ gpiod_get("wlf,micd-pol") call
+
+The initial value of the GPIO should match the info->micd_modes[0].gpio
+value. arizona_extcon_probe() already stores the necessary flag in a
+mode variable, but instead of passing mode as flags to the gpiod_get()
+it was using a hardcoded GPIOD_OUT_LOW.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/extcon/extcon-arizona.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/extcon/extcon-arizona.c b/drivers/extcon/extcon-arizona.c
+index 95acfe7620fd..145ca5cd40d5 100644
+--- a/drivers/extcon/extcon-arizona.c
++++ b/drivers/extcon/extcon-arizona.c
+@@ -1510,7 +1510,7 @@ static int arizona_extcon_probe(struct platform_device *pdev)
+ 		 */
+ 		info->micd_pol_gpio = gpiod_get_optional(arizona->dev,
+ 							 "wlf,micd-pol",
+-							 GPIOD_OUT_LOW);
++							 mode);
+ 		if (IS_ERR(info->micd_pol_gpio)) {
+ 			ret = PTR_ERR(info->micd_pol_gpio);
+ 			dev_err(arizona->dev,
+-- 
+2.28.0
+

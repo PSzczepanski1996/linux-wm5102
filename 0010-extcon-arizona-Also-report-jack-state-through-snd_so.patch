@@ -1,0 +1,62 @@
+From e827a5cac13500bab604e1a3d410fb8910dad62c Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 24 Dec 2020 14:52:16 +0100
+Subject: [PATCH 10/14] extcon: arizona: Also report jack state through
+ snd_soc_jack_report()
+
+The Linux Arizona driver uses the MFD framework to create several
+sub-devices for the Arizona codec and then uses a driver per function.
+
+The extcon-arizona driver handles jack-detect support and exports info
+about the jack state to userspace through the standard extcon sysfs
+class interface.
+
+Standard Linux userspace does not monitor/use the extcon sysfs interface
+for jack-detection, resulting in the jack-state not being taken into
+account by userspace.
+
+The ASoC machine-driver may have created a standard ASoC jack when
+registering the card. In this case also report the jack-state through the
+ASoC jack so that jack-detection works with standard Linux userspace.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/extcon/extcon-arizona.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/extcon/extcon-arizona.c b/drivers/extcon/extcon-arizona.c
+index d5b3231744f9..931a7d239aea 100644
+--- a/drivers/extcon/extcon-arizona.c
++++ b/drivers/extcon/extcon-arizona.c
+@@ -20,6 +20,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/extcon-provider.h>
+ 
++#include <sound/jack.h>
+ #include <sound/soc.h>
+ 
+ #include <linux/mfd/arizona/core.h>
+@@ -598,11 +599,19 @@ static int arizona_hpdet_do_id(struct arizona_extcon_info *info, int *reading,
+ static void arizona_set_extcon_state(struct arizona_extcon_info *info,
+ 				     unsigned int id, bool state)
+ {
+-	int ret;
++	int ret, mask = 0;
+ 
+ 	ret = extcon_set_state_sync(info->edev, id, state);
+ 	if (ret)
+ 		dev_err(info->arizona->dev, "Failed to set extcon state: %d\n", ret);
++
++	switch (id) {
++	case EXTCON_JACK_HEADPHONE:	mask = SND_JACK_HEADPHONE;	break;
++	case EXTCON_JACK_MICROPHONE:	mask = SND_JACK_MICROPHONE;	break;
++	}
++
++	if (info->arizona->jack && mask)
++		snd_soc_jack_report(info->arizona->jack, state ? mask : 0, mask);
+ }
+ 
+ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
+-- 
+2.28.0
+

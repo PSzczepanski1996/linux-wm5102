@@ -1,0 +1,52 @@
+From 050388b1503e895deeff7f95bbdc3efb3d712aa2 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Wed, 23 Dec 2020 12:55:10 +0100
+Subject: [PATCH 01/14] mfd: arizona: Add jack pointer to struct arizona
+
+The Linux Arizona driver uses the MFD framework to create several
+sub-devices for the Arizona codec and then uses a driver per function.
+
+The jack-detect support for the Arizona codec is handled by the
+extcon-arizona driver. This driver exports info about the jack state
+to userspace through the standard extcon sysfs class interface.
+
+But standard Linux userspace does not monitor/use the extcon sysfs
+interface for jack-detection.
+
+Add a jack pointer to the shared arizona data struct, this allows
+the ASoC machine driver to create a snd_soc_jack and then pass this
+to the extcon-arizona driver to report jack-detect state, so that
+jack-detection works with standard Linux userspace.
+
+The extcon-arizona code already depends on (waits for with -EPROBE_DEFER)
+the snd_card being registered by the machine driver, so this does not
+cause any ordering issues.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ include/linux/mfd/arizona/core.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/linux/mfd/arizona/core.h b/include/linux/mfd/arizona/core.h
+index 6d6f96b2b29f..5eb269bdbfcb 100644
+--- a/include/linux/mfd/arizona/core.h
++++ b/include/linux/mfd/arizona/core.h
+@@ -115,6 +115,7 @@ enum arizona_type {
+ #define ARIZONA_NUM_IRQ                   75
+ 
+ struct snd_soc_dapm_context;
++struct snd_soc_jack;
+ 
+ struct arizona {
+ 	struct regmap *regmap;
+@@ -148,6 +149,7 @@ struct arizona {
+ 	bool ctrlif_error;
+ 
+ 	struct snd_soc_dapm_context *dapm;
++	struct snd_soc_jack *jack;
+ 
+ 	int tdm_width[ARIZONA_MAX_AIF];
+ 	int tdm_slots[ARIZONA_MAX_AIF];
+-- 
+2.28.0
+

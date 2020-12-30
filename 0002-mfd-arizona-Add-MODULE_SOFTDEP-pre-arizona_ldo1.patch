@@ -1,0 +1,62 @@
+From 9c530723d4a82322c072079e78d2ce856d6dcdc1 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 7 Dec 2020 10:12:27 +0100
+Subject: [PATCH 02/14] mfd: arizona: Add MODULE_SOFTDEP("pre: arizona_ldo1")
+
+The (shared) probing code of the arizona-i2c and arizona-spi modules
+takes the following steps during init:
+
+1. Call mfd_add_devices() for a set of early child-devices, this
+includes the arizona_ldo1 device which provides one of the
+core-regulators.
+
+2. Bulk enable the core-regulators.
+
+3. Read the device id.
+
+4. Call mfd_add_devices() for the other child-devices.
+
+This sequence depends on 1. leading to not only the child-device
+being created, but also the driver for the child-device binding
+to it and registering its regulator.
+
+This requires the arizona_ldo1 driver to be loaded before the
+shared probing code runs. Add a doftdep for this to both modules to
+ensure that this requirement is met.
+
+Note this mirrors the existing MODULE_SOFTDEP("pre: wm8994_regulator")
+in the wm8994 code, which has a similar init sequence.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/mfd/arizona-i2c.c | 1 +
+ drivers/mfd/arizona-spi.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/mfd/arizona-i2c.c b/drivers/mfd/arizona-i2c.c
+index 4b58e3ad6eb6..2a4a3a164d0a 100644
+--- a/drivers/mfd/arizona-i2c.c
++++ b/drivers/mfd/arizona-i2c.c
+@@ -115,6 +115,7 @@ static struct i2c_driver arizona_i2c_driver = {
+ 
+ module_i2c_driver(arizona_i2c_driver);
+ 
++MODULE_SOFTDEP("pre: arizona_ldo1");
+ MODULE_DESCRIPTION("Arizona I2C bus interface");
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/mfd/arizona-spi.c b/drivers/mfd/arizona-spi.c
+index 2633e147b76c..704f214d2614 100644
+--- a/drivers/mfd/arizona-spi.c
++++ b/drivers/mfd/arizona-spi.c
+@@ -110,6 +110,7 @@ static struct spi_driver arizona_spi_driver = {
+ 
+ module_spi_driver(arizona_spi_driver);
+ 
++MODULE_SOFTDEP("pre: arizona_ldo1");
+ MODULE_DESCRIPTION("Arizona SPI bus interface");
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_LICENSE("GPL");
+-- 
+2.28.0
+
