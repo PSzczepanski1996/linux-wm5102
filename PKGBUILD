@@ -61,20 +61,6 @@ export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EP
 
 prepare() {
   cd $_srcname
-  patch --forward --strip=1 --input="${srcdir}/0001-mfd-arizona-Add-jack-pointer-to-struct-arizona.patch"
-  patch --forward --strip=1 --input="${srcdir}/0002-mfd-arizona-Add-MODULE_SOFTDEP-pre-arizona_ldo1.patch"
-  patch --forward --strip=1 --input="${srcdir}/0003-mfd-arizona-Add-support-for-ACPI-enumeration-of-WM51.patch"
-  patch --forward --strip=1 --input="${srcdir}/0004-mfd-arizona-Allow-building-arizona-MFD-core-as-modul.patch"
-  patch --forward --strip=1 --input="${srcdir}/0005-extcon-arizona-Fix-some-issues-when-HPDET-IRQ-fires-.patch"
-  patch --forward --strip=1 --input="${srcdir}/0006-extcon-arizona-Fix-various-races-on-driver-unbind.patch"
-  patch --forward --strip=1 --input="${srcdir}/0007-extcon-arizona-Fix-modalias.patch"
-  patch --forward --strip=1 --input="${srcdir}/0008-extcon-arizona-Fix-flags-parameter-to-the-gpiod_get-.patch"
-  patch --forward --strip=1 --input="${srcdir}/0009-extcon-arizona-Add-arizona_set_extcon_state-helper.patch"
-  patch --forward --strip=1 --input="${srcdir}/0010-extcon-arizona-Also-report-jack-state-through-snd_so.patch"
-  patch --forward --strip=1 --input="${srcdir}/0011-extcon-arizona-Use-ASoC-jack-input-device-when-avail.patch"
-  patch --forward --strip=1 --input="${srcdir}/0012-ASoC-Intel-Add-DMI-quirk-table-to-soc_intel_is_byt_c.patch"
-  patch --forward --strip=1 --input="${srcdir}/0013-ASoC-Intel-bytcr_wm5102-Add-machine-driver-for-BYT-W.patch"
-  patch --forward --strip=1 --input="${srcdir}/0014-ASoC-Intel-bytcr_wm5102-Add-jack-detect-support.patch"
 
   echo "Setting version..."
   scripts/setlocalversion --save-scmversion
